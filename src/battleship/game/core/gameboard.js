@@ -1,25 +1,49 @@
+import { getRotatedShape } from "../config/ships/shipUtils";
+
 class Gameboard {
-  constructor() {
+  constructor(config = { size: 10 }) {
+    this.size = config.size;
     this.placedShips = [];
     this.attackedTiles = [];
   }
 
-  placeShip(ship, startX, startY, direction) {
-    const coordinates = [];
+  placeShip(ship, startX, startY, rotation = 0) {
+    const shape = getRotatedShape(ship.shape, rotation);
+    const coordinates = shape.map(([x, y]) => ({
+      x: startX + x,
+      y: startY + y,
+      isHit: false,
+    }));
 
-    for (let i = 0; i < ship.length; i++) {
-      if (direction === "horizontal") {
-        coordinates.push({ x: startX + i, y: startY, isHit: false });
-      }
+    if (!this.isInsideBoard(coordinates)) {
+      return { success: false, reason: "out-of-bounds" };
+    }
 
-      if (direction === "vertical") {
-        coordinates.push({ x: startX, y: startY + i, isHit: false });
-      }
+    if (this.hasCollision(coordinates)) {
+      return { success: false, reason: "collision" };
     }
 
     this.placedShips.push({
       ship,
       coordinates,
+    });
+
+    return { success: true, coordinates };
+  }
+
+  isInsideBoard(coordinates) {
+    return coordinates.every(({ x, y }) => {
+      return x >= 0 && x < this.size && y >= 0 && y < this.size;
+    });
+  }
+
+  hasCollision(coordinates) {
+    return coordinates.some(({ x, y }) => {
+      return this.placedShips.some((placedShip) => {
+        return placedShip.coordinates.some((coordinate) => {
+          return coordinate.x === x && coordinate.y === y;
+        });
+      });
     });
   }
 
@@ -28,7 +52,9 @@ class Gameboard {
       (tile) => tile.x === x && tile.y === y,
     );
 
-    if (alreadyAttacked) return;
+    if (alreadyAttacked) {
+      return { result: "already-attacked" };
+    }
 
     this.attackedTiles.push({ x, y });
 
@@ -37,12 +63,16 @@ class Gameboard {
         if (coordinate.x === x && coordinate.y === y) {
           coordinate.isHit = true;
           placedShip.ship.hit();
-          return "hit";
+
+          return {
+            result: "hit",
+            ship: placedShip.ship,
+          };
         }
       }
     }
 
-    return "miss";
+    return { result: "miss" };
   }
 
   allShipsSunk() {

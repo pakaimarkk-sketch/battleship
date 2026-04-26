@@ -1,15 +1,20 @@
 class Ship {
-  constructor(length) {
-    this.length = length;
+  constructor(definition) {
+    this.id = definition.id;
+    this.name = definition.name;
+    this.size = definition.size;
+    this.shape = definition.shape;
     this.hits = 0;
   }
 
   hit() {
-    this.hits += 1;
+    if (!this.isSunk()) {
+      this.hits += 1;
+    }
   }
 
   isSunk() {
-    return this.hits >= this.length;
+    return this.hits >= this.size;
   }
 }
 
