@@ -1,7 +1,7 @@
 import { getRotatedShape } from "../config/ships/shipUtils";
 
 class Gameboard {
-  constructor(config = { size: 10 }) {
+  constructor(config) {
     this.size = config.size;
     this.placedShips = [];
     this.attackedTiles = [];
