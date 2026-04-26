@@ -1,55 +1,27 @@
 import Player from "../participants/player.js";
 import Gameboard from "./gameboard.js";
 import Ship from "./ship.js";
-import ComputerLogic from "../participants/computerLogic.js";
+import { createBotLogic } from "../config/bot/createBotLogic.js";
 
-class GameController {
-  constructor() {
-    this.humanPlayer = null;
-    this.computerPlayer = null;
-    this.computerLogic = null;
-    this.currentTurn = null;
-    this.winner = null;
-    this.gameOver = false;
-  }
-
-  startGame() {
-    this.humanPlayer = new Player(new Gameboard());
-    this.computerPlayer = new Player(new Gameboard());
-    this.computerLogic = new ComputerLogic("easy");
+class MatchController {
+  constructor(match) {
+    this.match = match;
 
     this.currentTurn = "human";
     this.winner = null;
     this.gameOver = false;
-
-    this.setupBoards();
-  }
-
-  setupBoards() {
-    const humanFleet = this.createFleet();
-    const computerFleet = this.createFleet();
-
-    this.placePresetFleet(this.humanPlayer.board, humanFleet);
-    this.placePresetFleet(this.computerPlayer.board, computerFleet);
-  }
-
-  createFleet() {
-    return [5, 4, 3, 3, 2].map((length) => new Ship(length));
-  }
-
-  placePresetFleet(board, fleet) {
-    board.placeShip(fleet[0], 0, 0, "horizontal");
-    board.placeShip(fleet[1], 0, 2, "horizontal");
-    board.placeShip(fleet[2], 0, 4, "horizontal");
-    board.placeShip(fleet[3], 0, 6, "horizontal");
-    board.placeShip(fleet[4], 0, 8, "horizontal");
+    this.phase = "playing";
   }
 
   handlePlayerAttack(x, y) {
     if (this.gameOver) return null;
     if (this.currentTurn !== "human") return null;
 
-    const result = this.humanPlayer.attack(this.computerPlayer.board, x, y);
+    const result = this.match.players.human.attack(
+      this.match.players.computer.board,
+      x,
+      y,
+    );
 
     this.checkWinner();
 
@@ -64,8 +36,15 @@ class GameController {
     if (this.gameOver) return null;
     if (this.currentTurn !== "computer") return null;
 
-    const { x, y } = this.computerLogic.getMove(this.humanPlayer.board);
-    const result = this.computerPlayer.attack(this.humanPlayer.board, x, y);
+    const { x, y } = this.match.botLogic.getAttack(
+      this.match.players.human.board,
+    );
+
+    const result = this.match.players.computer.attack(
+      this.match.players.human.board,
+      x,
+      y,
+    );
 
     this.checkWinner();
 
@@ -77,17 +56,34 @@ class GameController {
   }
 
   checkWinner() {
-    if (this.humanPlayer.board.allShipsSunk()) {
-      this.gameOver = true;
-      this.winner = "computer";
+    if (this.match.players.human.board.allShipsSunk()) {
+      this.endMatch("computer");
       return;
     }
 
-    if (this.computerPlayer.board.allShipsSunk()) {
-      this.gameOver = true;
-      this.winner = "human";
+    if (this.match.players.computer.board.allShipsSunk()) {
+      this.endMatch("human");
     }
+  }
+
+  endMatch(winner) {
+    this.gameOver = true;
+    this.winner = winner;
+    this.phase = "gameOver";
+    this.currentTurn = null;
+  }
+
+  getState() {
+    return {
+      currentTurn: this.currentTurn,
+      winner: this.winner,
+      gameOver: this.gameOver,
+      phase: this.phase,
+      mode: this.match.config.mode,
+      playerMode: this.match.config.playerMode,
+      difficulty: this.match.config.difficulty,
+    };
   }
 }
 
-export default GameController;
+export default MatchController;
