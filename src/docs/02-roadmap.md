@@ -22,13 +22,13 @@ Prepare the project structure, documentation, and module boundaries before core 
 
 ### Main Tasks
 
-- create the initial folder structure
-- define the main module boundaries
-- prepare architecture documentation
-- prepare roadmap documentation
-- define naming conventions for modules and controllers
-- establish config-driven direction for game modes
-- prepare reusable utility structure
+- create the initial folder structure ✅
+- define the main module boundaries ✅
+- prepare architecture documentation ✅
+- prepare roadmap documentation ✅
+- define naming conventions for modules and controllers ✅
+- establish config-driven direction for game modes ✅
+- prepare reusable utility structure ✅
 
 ### Expected Outcome
 
@@ -44,14 +44,14 @@ Build the lowest-level Battleship systems that represent the board and ships.
 
 ### Main Tasks
 
-- implement `ship.js`
-- implement `gameboard.js`
-- support board creation
-- support ship placement rules
-- support placement validation
-- support hit / miss registration
-- support sunk ship detection
-- define ship definitions through configuration where possible
+- implement `ship.js` ✅
+- implement `gameboard.js` ✅
+- support board creation ✅
+- support ship placement rules ✅
+- support placement validation ✅
+- support hit / miss registration ✅
+- support sunk ship detection ✅
+- define ship definitions through configuration where possible ✅
 
 ### Expected Outcome
 
@@ -73,7 +73,7 @@ Build the system that coordinates a full match.
 
 ### Main Tasks
 
-- implement `matchController.js`
+- implement `matchController.js` ✅
 - define match phases
   - setup phase
   - placement phase
@@ -81,8 +81,8 @@ Build the system that coordinates a full match.
   - end phase
 - implement turn switching
 - implement attack resolution flow through match logic
-- connect participants to their boards
-- implement winner detection
+- connect participants to their boards ✅
+- implement winner detection ✅
 - define game over handling
 - define round tracking for future advanced modes
 
@@ -107,9 +107,9 @@ Deliver the first fully playable version of the game using classic Battleship ru
 
 ### Main Tasks
 
-- implement `classicConfig.js`
-- connect classic preset to the match setup flow
-- create a valid classic ship set
+- implement `classicConfig.js` ✅
+- connect classic preset to the match setup flow ✅
+- create a valid classic ship set ✅
 - support player board setup for classic mode
 - support a playable battle loop
 - ensure classic rules work end to end
@@ -135,14 +135,14 @@ Add singleplayer support with bot behavior and difficulty scaling.
 
 ### Main Tasks
 
-- implement `computerLogic.js`
+- implement `computerLogic.js` ✅
 - connect bot behavior to singleplayer flow
-- implement `easyBotConfig.js`
+- implement `easyBotConfig.js` ✅
 - implement `mediumBotConfig.js`
 - implement `hardBotConfig.js`
-- support bot ship placement
-- support bot attack decisions
-- define how difficulty changes bot behavior
+- support bot ship placement ✅
+- support bot attack decisions ✅
+- define how difficulty changes bot behavior ✅
 - integrate difficulty selection into game setup
 
 ### Expected Outcome
@@ -228,11 +228,11 @@ Expand the game rules beyond classic Battleship using the existing config-driven
 
 ### Main Tasks
 
-- implement `modernConfig.js`
+- implement `modernConfig.js` ✅
 - implement ability definitions
-- implement special ship definitions
-- support larger board sizes
-- support special ship shapes
+- implement special ship definitions ✅
+- support larger board sizes ✅
+- support special ship shapes ✅
 - support ability rules
 - support unlock and cooldown behavior
 - implement `customSetup.js`
