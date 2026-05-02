@@ -1,21 +1,33 @@
+import { Gameboard } from "../core/gameboard.js";
+import { Player } from "../core/player.js";
+import { createBotLogic } from "../bot/createBotLogic.js";
+
 export function createMatch(config) {
-  const humanPlayer = new Player(new Gameboard(config.board));
-  const computerPlayer = new Player(new Gameboard(config.board));
+  const playerOne = new Player({
+    board: new Gameboard(config.board),
+  });
 
-  const humanFleet = createFleet(config.ships);
-  const computerFleet = createFleet(config.ships);
-
-  placePresetFleet(humanPlayer.board, humanFleet, config.placement.positions);
-
-  const botLogic = createBotLogic(config.difficulty);
-  botLogic.placeShips(computerPlayer.board, computerFleet);
+  const playerTwo = createOpponent(config);
 
   return {
     config,
-    players: {
-      human: humanPlayer,
-      computer: computerPlayer,
-    },
-    botLogic,
+    players: [playerOne, playerTwo],
+    currentTurn: playerOne,
+    phase: "placement",
+    winner: null,
+    gameOver: false,
   };
+}
+
+function createOpponent(config) {
+  if (config.match.playerMode === "singlePlayer") {
+    return new Player({
+      board: new Gameboard(config.board),
+      bot: createBotLogic(config.match.difficulty),
+    });
+  }
+
+  return new Player({
+    board: new Gameboard(config.board),
+  });
 }
