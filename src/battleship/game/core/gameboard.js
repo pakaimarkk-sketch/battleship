@@ -76,6 +76,10 @@ class Gameboard {
   }
 
   allShipsSunk() {
+    if (this.placedShips.length === 0) {
+      return false;
+    }
+
     return this.placedShips.every((placedShip) => placedShip.ship.isSunk());
   }
 }
