@@ -1,93 +1,102 @@
-import Gameboard from "../battleship/game/gameboard.js";
-import Ship from "../battleship/game/ship.js";
+import Gameboard from "../battleship/game/core/gameboard.js";
+import Ship from "../battleship/game/core/ship.js";
+
+function createTestShip() {
+  return new Ship({
+    id: "test-ship",
+    name: "Test Ship",
+    size: 3,
+    shape: [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+    ],
+  });
+}
 
 describe("Gameboard", () => {
-  test("starts with empty placedShips", () => {
-    const gameboard = new Gameboard();
+  test("starts with empty placedShips and attackedTiles", () => {
+    const board = new Gameboard({ size: 10 });
 
-    expect(gameboard.placedShips).toEqual([]);
+    expect(board.placedShips).toEqual([]);
+    expect(board.attackedTiles).toEqual([]);
   });
 
-  test("starts with empty attackedTiles", () => {
-    const gameboard = new Gameboard();
+  test("placeShip() places a ship with rotation 0", () => {
+    const board = new Gameboard({ size: 10 });
+    const ship = createTestShip();
 
-    expect(gameboard.attackedTiles).toEqual([]);
-  });
+    const result = board.placeShip(ship, 2, 4, 0);
 
-  test("placeShip() stores a ship with horizontal coordinates", () => {
-    const gameboard = new Gameboard();
-    const ship = new Ship(3);
-
-    gameboard.placeShip(ship, 2, 4, "horizontal");
-
-    expect(gameboard.placedShips).toHaveLength(1);
-    expect(gameboard.placedShips[0].ship).toBe(ship);
-    expect(gameboard.placedShips[0].coordinates).toEqual([
+    expect(result.success).toBe(true);
+    expect(board.placedShips).toHaveLength(1);
+    expect(board.placedShips[0].coordinates).toEqual([
       { x: 2, y: 4, isHit: false },
       { x: 3, y: 4, isHit: false },
       { x: 4, y: 4, isHit: false },
     ]);
   });
 
-  test("placeShip() stores a ship with vertical coordinates", () => {
-    const gameboard = new Gameboard();
-    const ship = new Ship(3);
+  test("placeShip() rejects out-of-bounds placement", () => {
+    const board = new Gameboard({ size: 10 });
+    const ship = createTestShip();
 
-    gameboard.placeShip(ship, 2, 4, "vertical");
+    const result = board.placeShip(ship, 8, 0, 0);
 
-    expect(gameboard.placedShips).toHaveLength(1);
-    expect(gameboard.placedShips[0].coordinates).toEqual([
-      { x: 2, y: 4, isHit: false },
-      { x: 2, y: 5, isHit: false },
-      { x: 2, y: 6, isHit: false },
-    ]);
+    expect(result).toMatchObject({
+      success: false,
+      reason: "out-of-bounds",
+    });
+
+    expect(board.placedShips).toHaveLength(0);
   });
 
-  test("receiveAttack() adds attacked tile", () => {
-    const gameboard = new Gameboard();
+  test("placeShip() rejects collision", () => {
+    const board = new Gameboard({ size: 10 });
+    const firstShip = createTestShip();
+    const secondShip = createTestShip();
 
-    gameboard.receiveAttack(5, 5);
+    board.placeShip(firstShip, 0, 0, 0);
+    const result = board.placeShip(secondShip, 1, 0, 0);
 
-    expect(gameboard.attackedTiles).toEqual([{ x: 5, y: 5 }]);
+    expect(result).toMatchObject({
+      success: false,
+      reason: "collision",
+    });
+
+    expect(board.placedShips).toHaveLength(1);
   });
 
   test("receiveAttack() returns miss for empty tile", () => {
-    const gameboard = new Gameboard();
+    const board = new Gameboard({ size: 10 });
 
-    const result = gameboard.receiveAttack(5, 5);
+    const result = board.receiveAttack(5, 5);
 
-    expect(result).toBe("miss");
+    expect(result.result).toBe("miss");
+    expect(board.attackedTiles).toContainEqual({ x: 5, y: 5 });
   });
 
-  test("receiveAttack() returns hit when attacking a ship", () => {
-    const gameboard = new Gameboard();
-    const ship = new Ship(3);
+  test("receiveAttack() returns hit and increases ship hits", () => {
+    const board = new Gameboard({ size: 10 });
+    const ship = createTestShip();
 
-    gameboard.placeShip(ship, 2, 4, "horizontal");
+    board.placeShip(ship, 2, 4, 0);
 
-    const result = gameboard.receiveAttack(3, 4);
+    const result = board.receiveAttack(3, 4);
 
-    expect(result).toBe("hit");
-  });
-
-  test("receiveAttack() increases ship hits when ship is attacked", () => {
-    const gameboard = new Gameboard();
-    const ship = new Ship(3);
-
-    gameboard.placeShip(ship, 2, 4, "horizontal");
-    gameboard.receiveAttack(3, 4);
-
+    expect(result.result).toBe("hit");
+    expect(result.ship).toBe(ship);
     expect(ship.hits).toBe(1);
   });
 
-  test("receiveAttack() marks the correct coordinate as hit", () => {
-    const gameboard = new Gameboard();
-    const ship = new Ship(3);
+  test("receiveAttack() marks the matching coordinate as hit", () => {
+    const board = new Gameboard({ size: 10 });
+    const ship = createTestShip();
 
-    gameboard.placeShip(ship, 2, 4, "horizontal");
-    gameboard.receiveAttack(3, 4);
+    board.placeShip(ship, 2, 4, 0);
+    board.receiveAttack(3, 4);
 
-    expect(gameboard.placedShips[0].coordinates).toEqual([
+    expect(board.placedShips[0].coordinates).toEqual([
       { x: 2, y: 4, isHit: false },
       { x: 3, y: 4, isHit: true },
       { x: 4, y: 4, isHit: false },
@@ -95,11 +104,18 @@ describe("Gameboard", () => {
   });
 
   test("receiveAttack() does not add the same attacked tile twice", () => {
-    const gameboard = new Gameboard();
+    const board = new Gameboard({ size: 10 });
 
-    gameboard.receiveAttack(5, 5);
-    gameboard.receiveAttack(5, 5);
+    board.receiveAttack(5, 5);
+    const result = board.receiveAttack(5, 5);
 
-    expect(gameboard.attackedTiles).toEqual([{ x: 5, y: 5 }]);
+    expect(result.result).toBe("already-attacked");
+    expect(board.attackedTiles).toEqual([{ x: 5, y: 5 }]);
+  });
+
+  test("allShipsSunk() returns false when no ships are placed", () => {
+    const board = new Gameboard({ size: 10 });
+
+    expect(board.allShipsSunk()).toBe(false);
   });
 });
