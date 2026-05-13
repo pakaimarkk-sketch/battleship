@@ -1,4 +1,6 @@
 import EasyBotLogic from "./easyBotLogic";
+import MediumBotLogic from "./mediumBotLogic";
+import HardBotLogic from "./hardBotLogic";
 
 export function createBotLogic(difficulty) {
   const botLogics = {
