@@ -1,4 +1,4 @@
-import { classicShipDefinitions } from "../ships/shipDefinitions";
+import { classicShipDefinitions } from "../ships/shipDefinitions.js";
 
 export const classicConfig = {
   mode: "classic",
@@ -22,5 +22,12 @@ export const classicConfig = {
 
   abilities: {
     enabled: false,
+  },
+
+  rules: {
+    allowAdjacentShips: true,
+    allowRepeatedAttacks: false,
+    winCondition: "sinkAllShips",
+    extraTurnOnHit: true,
   },
 };

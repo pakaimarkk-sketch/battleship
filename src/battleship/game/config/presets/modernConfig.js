@@ -28,4 +28,11 @@ export const modernConfig = {
   abilities: {
     enabled: true,
   },
+
+  rules: {
+    allowAdjacentShips: true,
+    allowRepeatedAttacks: false,
+    winCondition: "sinkAllShips",
+    extraTurnOnHit: true,
+  },
 };
