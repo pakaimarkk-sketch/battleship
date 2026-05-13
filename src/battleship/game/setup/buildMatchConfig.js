@@ -1,7 +1,8 @@
 import { classicConfig } from "../config/presets/classicConfig.js";
 import { modernConfig } from "../config/presets/modernConfig.js";
-import { createCustomConfig } from "../config/custom/createCustomConfig.js";
+import { createCustomConfig } from "../config/presets/custom/createCustomConfig.js";
 import { validateConfig } from "./validateConfig.js";
+import { GAME_MODES } from "../modes/gameModes.js";
 
 const presetConfigs = {
   classic: classicConfig,
@@ -15,7 +16,7 @@ export function buildMatchConfig(selection) {
       : presetConfigs[selection.gameMode];
 
   if (!baseConfig) {
-    throw new Error(`Unknown config source: ${selection.presetName}`);
+    throw new Error(`Unknown config source: ${selection.gameMode}`);
   }
 
   const matchConfig = {
