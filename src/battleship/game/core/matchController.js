@@ -1,87 +1,92 @@
-import Player from "../participants/player.js";
-import Gameboard from "./gameboard.js";
-import Ship from "./ship.js";
-import { createBotLogic } from "../config/bot/createBotLogic.js";
-
 class MatchController {
   constructor(match) {
     this.match = match;
+  }
 
-    this.currentTurn = "human";
-    this.winner = null;
-    this.gameOver = false;
-    this.phase = "playing";
+  getCurrentPlayer() {
+    return this.match.players[this.match.state.currentTurn];
+  }
+
+  getOpponentKey() {
+    return this.match.state.currentTurn === "playerOne"
+      ? "playerTwo"
+      : "playerOne";
+  }
+
+  getOpponentPlayer() {
+    return this.match.players[this.getOpponentKey()];
   }
 
   handlePlayerAttack(x, y) {
-    if (this.gameOver) return null;
-    if (this.currentTurn !== "human") return null;
+    if (this.match.state.gameOver) return null;
 
-    const result = this.match.players.human.attack(
-      this.match.players.computer.board,
-      x,
-      y,
-    );
+    const attacker = this.getCurrentPlayer();
+    const opponent = this.getOpponentPlayer();
 
-    this.checkWinner();
+    const result = attacker.attack(opponent.board, x, y);
 
-    if (!this.gameOver) {
-      this.currentTurn = "computer";
+    if (result.result === "already-attacked") {
+      return result;
+    }
+
+    if (opponent.board.allShipsSunk()) {
+      this.endMatch(attacker.id);
+      return result;
+    }
+
+    const shouldSwitchTurn =
+      result.result === "miss" ||
+      (result.result === "hit" && !this.match.config.rules.extraTurnOnHit);
+
+    if (shouldSwitchTurn) {
+      this.switchTurn();
     }
 
     return result;
   }
 
-  handleComputerTurn() {
-    if (this.gameOver) return null;
-    if (this.currentTurn !== "computer") return null;
+  handleBotTurn() {
+    if (this.match.state.gameOver) return null;
 
-    const { x, y } = this.match.botLogic.getAttack(
-      this.match.players.human.board,
-    );
+    const currentPlayer = this.getCurrentPlayer();
 
-    const result = this.match.players.computer.attack(
-      this.match.players.human.board,
-      x,
-      y,
-    );
-
-    this.checkWinner();
-
-    if (!this.gameOver) {
-      this.currentTurn = "human";
+    if (currentPlayer.type !== "bot") {
+      return null;
     }
+
+    if (!this.match.botLogic) {
+      throw new Error("Bot logic is missing");
+    }
+
+    const opponent = this.getOpponentPlayer();
+    const { x, y } = this.match.botLogic.getAttack(opponent.board);
+
+    const result = this.handlePlayerAttack(x, y);
 
     return { x, y, result };
   }
 
-  checkWinner() {
-    if (this.match.players.human.board.allShipsSunk()) {
-      this.endMatch("computer");
-      return;
-    }
-
-    if (this.match.players.computer.board.allShipsSunk()) {
-      this.endMatch("human");
-    }
+  switchTurn() {
+    this.match.state.currentTurn =
+      this.match.state.currentTurn === "playerOne" ? "playerTwo" : "playerOne";
   }
 
   endMatch(winner) {
-    this.gameOver = true;
-    this.winner = winner;
-    this.phase = "gameOver";
-    this.currentTurn = null;
+    this.match.state.gameOver = true;
+    this.match.state.winner = winner;
+    this.match.state.phase = "gameOver";
+    this.match.state.currentTurn = null;
   }
 
   getState() {
     return {
-      currentTurn: this.currentTurn,
-      winner: this.winner,
-      gameOver: this.gameOver,
-      phase: this.phase,
+      currentTurn: this.match.state.currentTurn,
+      winner: this.match.state.winner,
+      gameOver: this.match.state.gameOver,
+      phase: this.match.state.phase,
       mode: this.match.config.mode,
-      playerMode: this.match.config.playerMode,
-      difficulty: this.match.config.difficulty,
+      playerMode: this.match.config.match.playerMode,
+      difficulty: this.match.config.match.difficulty,
     };
   }
 }
