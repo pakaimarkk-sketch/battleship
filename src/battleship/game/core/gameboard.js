@@ -53,26 +53,43 @@ class Gameboard {
     );
 
     if (alreadyAttacked) {
-      return { result: "already-attacked" };
+      return {
+        result: "already-attacked",
+        x,
+        y,
+        ship: null,
+        sunk: false,
+      };
     }
 
     this.attackedTiles.push({ x, y });
 
     for (const placedShip of this.placedShips) {
-      for (const coordinate of placedShip.coordinates) {
-        if (coordinate.x === x && coordinate.y === y) {
-          coordinate.isHit = true;
-          placedShip.ship.hit();
+      const coordinate = placedShip.coordinates.find((coord) => {
+        return coord.x === x && coord.y === y;
+      });
 
-          return {
-            result: "hit",
-            ship: placedShip.ship,
-          };
-        }
+      if (coordinate) {
+        coordinate.isHit = true;
+        placedShip.ship.hit();
+
+        return {
+          result: "hit",
+          x,
+          y,
+          ship: placedShip.ship,
+          sunk: placedShip.ship.isSunk(),
+        };
       }
     }
 
-    return { result: "miss" };
+    return {
+      result: "miss",
+      x,
+      y,
+      ship: null,
+      sunk: false,
+    };
   }
 
   allShipsSunk() {
@@ -81,6 +98,16 @@ class Gameboard {
     }
 
     return this.placedShips.every((placedShip) => placedShip.ship.isSunk());
+  }
+
+  getFleetStatus() {
+    return this.placedShips.map((placedShip) => ({
+      id: placedShip.ship.id,
+      name: placedShip.ship.name,
+      size: placedShip.ship.size,
+      hits: placedShip.ship.hits,
+      sunk: placedShip.ship.isSunk(),
+    }));
   }
 }
 
