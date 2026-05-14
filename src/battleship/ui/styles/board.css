@@ -1,0 +1,45 @@
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.board-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.board {
+  display: grid;
+  width: min(42vw, 420px);
+  aspect-ratio: 1 / 1;
+  border: 2px solid #374151;
+  background: #020617;
+}
+
+.tile {
+  padding: 0;
+  border: 1px solid #374151;
+  background: #1f2937;
+  cursor: pointer;
+}
+
+.tile:hover {
+  background: #374151;
+}
+
+.tile.empty {
+  background: #1f2937;
+}
+
+.tile.ship {
+  background: #64748b;
+}
+
+.tile.hit {
+  background: #dc2626;
+}
+
+.tile.miss {
+  background: #2563eb;
+}

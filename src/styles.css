@@ -1,4 +1,3 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
+@import "./battleship/ui/styles/base.css";
+@import "./battleship/ui/styles/game.css";
+@import "./battleship/ui/styles/board.css";

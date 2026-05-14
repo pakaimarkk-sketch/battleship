@@ -1,0 +1,21 @@
+.game-screen {
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.game-title {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+}
+
+.game-status {
+  margin: 0 0 2rem;
+  color: #d1d5db;
+}
+
+.boards {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
