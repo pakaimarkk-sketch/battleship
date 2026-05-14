@@ -1,15 +1,19 @@
 export const createEl = (tag, id = null, ...classes) => {
   const el = document.createElement(tag);
-  if (id) el.id = id;
-  if (classes) el.classList.add(...classes);
+
+  if (id) {
+    el.id = id;
+  }
+
+  if (classes.length > 0) {
+    el.classList.add(...classes);
+  }
+
   return el;
 };
 
 export const createDiv = (id = null, ...classes) => {
-  const div = document.createElement("div");
-  if (id) div.id = id;
-  if (classes) div.classList.add(...classes);
-  return div;
+  return createEl("div", id, ...classes);
 };
 
 export const createTextElement = (tag, text = "", id = null, ...classes) => {
