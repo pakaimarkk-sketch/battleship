@@ -79,11 +79,11 @@ Build the system that coordinates a full match.
   - placement phase
   - battle phase
   - end phase
-- implement turn switching
-- implement attack resolution flow through match logic
+- implement turn switching ✅
+- implement attack resolution flow through match logic ✅
 - connect participants to their boards ✅
 - implement winner detection ✅
-- define game over handling
+- define game over handling ✅
 - define round tracking for future advanced modes
 
 ### Expected Outcome
@@ -110,10 +110,10 @@ Deliver the first fully playable version of the game using classic Battleship ru
 - implement `classicConfig.js` ✅
 - connect classic preset to the match setup flow ✅
 - create a valid classic ship set ✅
-- support player board setup for classic mode
-- support a playable battle loop
-- ensure classic rules work end to end
-- validate that the core game can be completed from start to finish
+- support player board setup for classic mode ✅
+- support a playable battle loop ✅
+- ensure classic rules work end to end ✅
+- validate that the core game can be completed from start to finish ✅
 
 ### Expected Outcome
 
@@ -136,7 +136,7 @@ Add singleplayer support with bot behavior and difficulty scaling.
 ### Main Tasks
 
 - implement `computerLogic.js` ✅
-- connect bot behavior to singleplayer flow
+- connect bot behavior to singleplayer flow ✅
 - implement `easyBotConfig.js` ✅
 - implement `mediumBotConfig.js`
 - implement `hardBotConfig.js`
