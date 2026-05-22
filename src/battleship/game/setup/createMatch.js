@@ -3,14 +3,33 @@ import Player from "../participants/player.js";
 import { PLAYER_TYPES } from "../participants/playerTypes.js";
 import { PLAYER_MODES } from "../modes/playerModes.js";
 import { createBotLogic } from "../config/bot/createBotLogic.js";
-import { placePresetFleet } from "./placePresetFleet.js";
+import { createPlacementSession } from "./createPlacementSession.js";
 
 export function createMatch(config) {
   const playerOneBoard = new Gameboard(config.board);
   const playerTwoBoard = new Gameboard(config.board);
 
-  placePresetFleet(playerOneBoard, config.ships, config.placement);
-  placePresetFleet(playerTwoBoard, config.ships, config.placement);
+  const playerOnePlacement = createPlacementSession({
+    board: playerOneBoard,
+    ships: config.ships,
+  });
+
+  const playerTwoPlacement = createPlacementSession({
+    board: playerTwoBoard,
+    ships: config.ships,
+  });
+
+  if (config.placement?.type === "preset") {
+    const playerTwoPlacementResult = playerTwoPlacement.placeFromPositions(
+      config.placement.positions,
+    );
+
+    if (!playerTwoPlacementResult.success) {
+      throw new Error(
+        `Failed to place playerTwo fleet: ${playerTwoPlacementResult.reason}`,
+      );
+    }
+  }
 
   const playerOne = new Player({
     id: "playerOne",
@@ -48,10 +67,10 @@ export function createMatch(config) {
     },
 
     state: {
-      currentTurn: "playerOne",
+      currentTurn: null,
       winner: null,
       gameOver: false,
-      phase: "playing",
+      phase: "placement",
     },
 
     botLogic,

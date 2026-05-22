@@ -20,6 +20,13 @@ class MatchController {
   handlePlayerAttack(x, y) {
     if (this.match.state.gameOver) return null;
 
+    if (this.match.state.phase !== "playing") {
+      return {
+        success: false,
+        reason: "not-playing-phase",
+      };
+    }
+
     const attacker = this.getCurrentPlayer();
     const opponent = this.getOpponentPlayer();
 
@@ -48,6 +55,10 @@ class MatchController {
   handleBotTurn() {
     if (this.match.state.gameOver) return null;
 
+    if (this.match.state.phase !== "playing") {
+      return null;
+    }
+
     const currentPlayer = this.getCurrentPlayer();
 
     if (currentPlayer.type !== "bot") {
@@ -69,6 +80,40 @@ class MatchController {
   switchTurn() {
     this.match.state.currentTurn =
       this.match.state.currentTurn === "playerOne" ? "playerTwo" : "playerOne";
+  }
+
+  placePlayerOneShip(x, y) {
+    if (this.match.state.phase !== "placement") {
+      return {
+        success: false,
+        reason: "not-placement-phase",
+      };
+    }
+
+    const result = this.match.placement.playerOne.placeCurrentShipAt(x, y);
+
+    if (!result.success) {
+      return result;
+    }
+
+    if (result.complete) {
+      this.startPlayingPhase();
+    }
+
+    return result;
+  }
+
+  rotatePlayerOneShip() {
+    if (this.match.state.phase !== "placement") {
+      return null;
+    }
+
+    return this.match.placement.playerOne.rotateShip();
+  }
+
+  startPlayingPhase() {
+    this.match.state.phase = "playing";
+    this.match.state.currentTurn = "playerOne";
   }
 
   endMatch(winner) {
