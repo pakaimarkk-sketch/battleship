@@ -1,0 +1,55 @@
+.game-over-panel {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.game-over-title {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-over-winner {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.game-over-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.game-over-button {
+  cursor: pointer;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 0.75rem;
+  background: rgba(30, 41, 59, 0.95);
+  color: inherit;
+  font: inherit;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.game-over-button:hover {
+  transform: translateY(-1px);
+  background: rgba(51, 65, 85, 0.95);
+  border-color: rgba(226, 232, 240, 0.65);
+}
+
+.game-over-button:active {
+  transform: translateY(0);
+}

@@ -1,3 +1,4 @@
 @import "./battleship/ui/styles/base.css";
 @import "./battleship/ui/styles/game.css";
 @import "./battleship/ui/styles/board.css";
+@import "./battleship/ui/styles/gameOver.css";
