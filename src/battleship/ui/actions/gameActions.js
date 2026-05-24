@@ -38,6 +38,10 @@ function handleEnemyTileClick(controller, x, y) {
     return;
   }
 
+  if (controller.getState().phase === "gameOver") {
+    renderGameOverPanel(controller);
+  }
+
   handleBotTurns(controller);
 }
 
@@ -49,6 +53,10 @@ function handleBotTurns(controller) {
     const botAttack = controller.handleBotTurn();
 
     if (!botAttack) break;
+
+    if (controller.getState().phase === "gameOver") {
+      renderGameOverPanel(controller);
+    }
 
     renderAttackTile({
       owner: "playerOne",
