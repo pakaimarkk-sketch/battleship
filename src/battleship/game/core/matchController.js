@@ -1,85 +1,16 @@
+import { createPlacementPhase } from "../phases/placementPhase.js";
+import { createPlayingPhase } from "../phases/playingPhase.js";
+import { createGameOverPhase } from "../phases/gameOverPhase.js";
+
 class MatchController {
   constructor(match) {
     this.match = match;
-  }
 
-  getCurrentPlayer() {
-    return this.match.players[this.match.state.currentTurn];
-  }
-
-  getOpponentKey() {
-    return this.match.state.currentTurn === "playerOne"
-      ? "playerTwo"
-      : "playerOne";
-  }
-
-  getOpponentPlayer() {
-    return this.match.players[this.getOpponentKey()];
-  }
-
-  handlePlayerAttack(x, y) {
-    if (this.match.state.gameOver) return null;
-
-    if (this.match.state.phase !== "playing") {
-      return {
-        success: false,
-        reason: "not-playing-phase",
-      };
-    }
-
-    const attacker = this.getCurrentPlayer();
-    const opponent = this.getOpponentPlayer();
-
-    const result = attacker.attack(opponent.board, x, y);
-
-    if (result.result === "already-attacked") {
-      return result;
-    }
-
-    if (opponent.board.allShipsSunk()) {
-      this.endMatch(attacker.id);
-      return result;
-    }
-
-    const shouldSwitchTurn =
-      result.result === "miss" ||
-      (result.result === "hit" && !this.match.config.rules.extraTurnOnHit);
-
-    if (shouldSwitchTurn) {
-      this.switchTurn();
-    }
-
-    return result;
-  }
-
-  handleBotTurn() {
-    if (this.match.state.gameOver) return null;
-
-    if (this.match.state.phase !== "playing") {
-      return null;
-    }
-
-    const currentPlayer = this.getCurrentPlayer();
-
-    if (currentPlayer.type !== "bot") {
-      return null;
-    }
-
-    if (!this.match.botLogic) {
-      throw new Error("Bot logic is missing");
-    }
-
-    const opponent = this.getOpponentPlayer();
-    const { x, y } = this.match.botLogic.getAttack(opponent.board);
-
-    const result = this.handlePlayerAttack(x, y);
-
-    return { x, y, result };
-  }
-
-  switchTurn() {
-    this.match.state.currentTurn =
-      this.match.state.currentTurn === "playerOne" ? "playerTwo" : "playerOne";
+    this.phases = {
+      placement: createPlacementPhase(match),
+      playing: createPlayingPhase(match),
+      gameOver: createGameOverPhase(match),
+    };
   }
 
   placePlayerOneShip(x, y) {
@@ -90,13 +21,13 @@ class MatchController {
       };
     }
 
-    const result = this.match.placement.playerOne.placeCurrentShipAt(x, y);
+    const result = this.phases.placement.placeShip("playerOne", x, y);
 
     if (!result.success) {
       return result;
     }
 
-    if (result.complete) {
+    if (this.phases.placement.canStartPlaying()) {
       this.startPlayingPhase();
     }
 
@@ -108,7 +39,46 @@ class MatchController {
       return null;
     }
 
-    return this.match.placement.playerOne.rotateShip();
+    return this.phases.placement.rotateShip("playerOne");
+  }
+
+  handlePlayerAttack(x, y) {
+    if (this.match.state.phase !== "playing") {
+      return {
+        success: false,
+        reason: "not-playing-phase",
+      };
+    }
+
+    if (this.match.state.gameOver) {
+      return null;
+    }
+
+    const result = this.phases.playing.attack(x, y);
+
+    if (result.gameOver) {
+      this.endMatch(result.winner);
+    }
+
+    return result;
+  }
+
+  handleBotTurn() {
+    if (this.match.state.phase !== "playing") {
+      return null;
+    }
+
+    if (!this.phases.playing.shouldBotPlay()) {
+      return null;
+    }
+
+    const botResult = this.phases.playing.botAttack();
+
+    if (botResult.result.gameOver) {
+      this.endMatch(botResult.result.winner);
+    }
+
+    return botResult;
   }
 
   startPlayingPhase() {
@@ -117,18 +87,12 @@ class MatchController {
   }
 
   endMatch(winner) {
-    this.match.state.gameOver = true;
-    this.match.state.winner = winner;
-    this.match.state.phase = "gameOver";
-    this.match.state.currentTurn = null;
+    return this.phases.gameOver.enter(winner);
   }
 
   getState() {
     return {
-      currentTurn: this.match.state.currentTurn,
-      winner: this.match.state.winner,
-      gameOver: this.match.state.gameOver,
-      phase: this.match.state.phase,
+      ...this.match.state,
       mode: this.match.config.mode,
       playerMode: this.match.config.match.playerMode,
       difficulty: this.match.config.match.difficulty,

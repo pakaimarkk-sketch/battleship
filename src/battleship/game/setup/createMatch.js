@@ -66,6 +66,11 @@ export function createMatch(config) {
       playerTwo,
     },
 
+    placement: {
+      playerOne: playerOnePlacement,
+      playerTwo: playerTwoPlacement,
+    },
+
     state: {
       currentTurn: null,
       winner: null,
