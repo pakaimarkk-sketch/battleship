@@ -9,17 +9,19 @@ export function createMatch(config) {
   const playerOneBoard = new Gameboard(config.board);
   const playerTwoBoard = new Gameboard(config.board);
 
+  const isSinglePlayer = config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER;
+
   const playerOnePlacement = createPlacementSession({
     board: playerOneBoard,
     ships: config.ships,
   });
 
-  const playerTwoPlacement = createPlacementSession({
-    board: playerTwoBoard,
-    ships: config.ships,
-  });
-
-  const isSinglePlayer = config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER;
+  const playerTwoPlacement = isSinglePlayer
+    ? null
+    : createPlacementSession({
+        board: playerTwoBoard,
+        ships: config.ships,
+      });
 
   const botLogic = isSinglePlayer
     ? createBotLogic(config.match.difficulty)
@@ -28,7 +30,7 @@ export function createMatch(config) {
   if (botLogic) {
     const placementResult = botLogic.placeShips(playerTwoBoard, config.ships);
 
-    if (placementResult && !placementResult.success) {
+    if (!placementResult.success) {
       throw new Error(`Bot placement failed: ${placementResult.reason}`);
     }
   }
