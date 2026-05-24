@@ -19,15 +19,17 @@ export function createMatch(config) {
     ships: config.ships,
   });
 
-  if (config.placement?.type === "preset") {
-    const playerTwoPlacementResult = playerTwoPlacement.placeFromPositions(
-      config.placement.positions,
-    );
+  const isSinglePlayer = config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER;
 
-    if (!playerTwoPlacementResult.success) {
-      throw new Error(
-        `Failed to place playerTwo fleet: ${playerTwoPlacementResult.reason}`,
-      );
+  const botLogic = isSinglePlayer
+    ? createBotLogic(config.match.difficulty)
+    : null;
+
+  if (botLogic) {
+    const placementResult = botLogic.placeShips(playerTwoBoard, config.ships);
+
+    if (placementResult && !placementResult.success) {
+      throw new Error(`Bot placement failed: ${placementResult.reason}`);
     }
   }
 
@@ -40,23 +42,10 @@ export function createMatch(config) {
 
   const playerTwo = new Player({
     id: "playerTwo",
-    name:
-      config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER
-        ? "Computer"
-        : "Player 2",
-
-    type:
-      config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER
-        ? PLAYER_TYPES.BOT
-        : PLAYER_TYPES.HUMAN,
-
+    name: isSinglePlayer ? "Computer" : "Player 2",
+    type: isSinglePlayer ? PLAYER_TYPES.BOT : PLAYER_TYPES.HUMAN,
     board: playerTwoBoard,
   });
-
-  const botLogic =
-    config.match.playerMode === PLAYER_MODES.SINGLE_PLAYER
-      ? createBotLogic(config.match.difficulty)
-      : null;
 
   return {
     config,

@@ -32,6 +32,10 @@ class EasyBotLogic {
         }
       }
     }
+
+    return {
+      success: true,
+    };
   }
 
   getRandomRotation() {

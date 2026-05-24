@@ -81,6 +81,14 @@ class MatchController {
     return botResult;
   }
 
+  shouldBotPlay() {
+    if (this.match.state.phase !== "playing") {
+      return false;
+    }
+
+    return this.phases.playing.shouldBotPlay();
+  }
+
   startPlayingPhase() {
     this.match.state.phase = "playing";
     this.match.state.currentTurn = "playerOne";
