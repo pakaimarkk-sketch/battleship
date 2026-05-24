@@ -1,8 +1,8 @@
 import {
-  createEl,
   createDiv,
   createTextElement,
   appendChildren,
+  createButton,
 } from "../../utils/domHelpers.js";
 
 export function renderGameOverPanel(controller) {
@@ -18,27 +18,28 @@ export function renderGameOverPanel(controller) {
 
   const wrapper = createDiv(null, "game-over-panel");
 
-  const title = createTextElement("h2", null, "game-over-title", "Game Over");
+  const title = createTextElement("h2", "Game Over", null, "game-over-title");
 
   const winnerText = createTextElement(
     "p",
+    `${state.winner} wins!`,
     null,
     "game-over-winner",
-    `${state.winner} wins!`,
   );
 
   const actions = createDiv(null, "game-over-actions");
 
-  const rematchButton = createEl("button", null, "game-over-button");
-  rematchButton.textContent = "Rematch";
+  const rematchButton = createButton("Rematch", null, "game-over-button");
   rematchButton.dataset.action = "rematch";
 
-  const exitButton = createEl("button", null, "game-over-button");
-  exitButton.textContent = "Exit";
+  const exitButton = createButton("Exit", null, "game-over-button");
   exitButton.dataset.action = "exit";
 
-  const changeModeButton = createEl("button", null, "game-over-button");
-  changeModeButton.textContent = "Change game mode";
+  const changeModeButton = createButton(
+    "Change game mode",
+    null,
+    "game-over-button",
+  );
   changeModeButton.dataset.action = "change-game-mode";
 
   appendChildren(actions, rematchButton, exitButton, changeModeButton);

@@ -13,7 +13,7 @@ export function createGameLayout(controller) {
 
   const title = createTextElement("h1", "Battleship", null, "game-title");
 
-  const status = createTextElement("p", "", null, "game-status");
+  const status = createEl("div", null, "game-status");
   status.dataset.role = "game-status";
 
   const boards = createEl("div", null, "boards");

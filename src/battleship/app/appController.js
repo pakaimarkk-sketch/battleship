@@ -1,13 +1,13 @@
-import { createMatch } from "./game/setup/createMatch.js";
-import MatchController from "./game/core/matchController.js";
+import { createMatch } from "..createMatch.js";
+import MatchController from "..matchController.js";
 
-import { renderGameLayout } from "./ui/layout/gameLayout.js";
-import { renderBoard } from "./ui/renderer/boardRenderer.js";
-import { renderGameOverPanel } from "./ui/renderer/gameOverRenderer.js";
+import { renderGameLayout } from "..gameLayout.js";
+import { renderBoard } from "..boardRenderer.js";
+import { renderGameOverPanel } from "..gameOverRenderer.js";
 
-import { bindPlacementActions } from "./ui/actions/placementActions.js";
-import { bindGameActions } from "./ui/actions/gameActions.js";
-import { bindGameOverActions } from "./ui/actions/gameOverActions.js";
+import { bindPlacementActions } from "..placementActions.js";
+import { bindGameActions } from "..gameActions.js";
+import { bindGameOverActions } from "..gameOverActions.js";
 
 import { showScreen } from "./screenController.js";
 

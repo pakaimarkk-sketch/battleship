@@ -1,4 +1,5 @@
 import { renderAttackTile } from "../renderer/gameRenderer.js";
+import { renderGameOverPanel } from "../renderer/gameOverRenderer.js";
 
 export function bindGameActions(controller) {
   const enemyBoard = document.querySelector('[data-owner="playerTwo"].board');
@@ -46,10 +47,7 @@ function handleEnemyTileClick(controller, x, y) {
 }
 
 function handleBotTurns(controller) {
-  while (
-    !controller.getState().gameOver &&
-    controller.getCurrentPlayer()?.isBot()
-  ) {
+  while (!controller.getState().gameOver && controller.shouldBotPlay()) {
     const botAttack = controller.handleBotTurn();
 
     if (!botAttack) break;
