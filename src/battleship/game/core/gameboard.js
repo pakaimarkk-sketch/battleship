@@ -1,4 +1,4 @@
-import { getRotatedShape } from "../config/ships/shipUtils";
+import { getRotatedShape } from "../config/ships/shipUtils.js";
 
 class Gameboard {
   constructor(config) {
@@ -44,6 +44,12 @@ class Gameboard {
           return coordinate.x === x && coordinate.y === y;
         });
       });
+    });
+  }
+
+  wasAttacked(x, y) {
+    return this.attackedTiles.some((tile) => {
+      return tile.x === x && tile.y === y;
     });
   }
 
