@@ -8,6 +8,7 @@ import { PLAYER_MODES } from "./battleship/game/modes/playerModes.js";
 import { createGameLayout } from "./battleship/ui/layout/gameLayout.js";
 import { renderInitialGame } from "./battleship/ui/renderer/gameRenderer.js";
 import { bindGameActions } from "./battleship/ui/actions/gameActions.js";
+import { bindPlacementActions } from "./battleship/ui/actions/placementActions.js";
 
 const config = buildMatchConfig({
   gameMode: GAME_MODES.CLASSIC,
@@ -25,3 +26,5 @@ app.append(createGameLayout(controller));
 renderInitialGame(controller);
 
 bindGameActions(controller);
+
+bindPlacementActions(controller);
