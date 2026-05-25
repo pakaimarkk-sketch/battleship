@@ -1,7 +1,7 @@
-import Ship from "../../core/ship.js";
-import { rotateShape } from "../ships/shipUtils.js";
+import Ship from "../../../core/ship.js";
+import { rotateShape } from "../../ships/shipUtils.js";
 
-export function placeShipsRandomly(board, fleet) {
+export function randomPlacement(board, fleet) {
   const occupiedCoords = new Set();
 
   for (const shipDefinition of fleet) {
@@ -16,9 +16,7 @@ export function placeShipsRandomly(board, fleet) {
     }
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 }
 
 function placeSingleShipRandomly(board, shipDefinition, occupiedCoords) {
@@ -51,10 +49,7 @@ function placeSingleShipRandomly(board, shipDefinition, occupiedCoords) {
 
     if (result.success) {
       markOccupied(result.coordinates, occupiedCoords);
-
-      return {
-        success: true,
-      };
+      return { success: true };
     }
   }
 
@@ -77,11 +72,7 @@ function getValidPlacements(board, shipDefinition, occupiedCoords) {
         if (!isWithinBoard(coordinates, board.size)) continue;
         if (hasCollision(coordinates, occupiedCoords)) continue;
 
-        validPlacements.push({
-          x,
-          y,
-          rotation,
-        });
+        validPlacements.push({ x, y, rotation });
       }
     }
   }
@@ -99,13 +90,15 @@ function getShipCoordinates(shipDefinition, startX, startY, rotation) {
 }
 
 function isWithinBoard(coordinates, boardSize) {
-  return coordinates.every(
-    ({ x, y }) => x >= 0 && x < boardSize && y >= 0 && y < boardSize,
-  );
+  return coordinates.every(({ x, y }) => {
+    return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
+  });
 }
 
 function hasCollision(coordinates, occupiedCoords) {
-  return coordinates.some(({ x, y }) => occupiedCoords.has(getCoordKey(x, y)));
+  return coordinates.some(({ x, y }) => {
+    return occupiedCoords.has(getCoordKey(x, y));
+  });
 }
 
 function markOccupied(coordinates, occupiedCoords) {
@@ -116,9 +109,4 @@ function markOccupied(coordinates, occupiedCoords) {
 
 function getCoordKey(x, y) {
   return `${x},${y}`;
-}
-
-function getRandomItem(items) {
-  const index = Math.floor(Math.random() * items.length);
-  return items[index];
 }

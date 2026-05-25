@@ -1,26 +1,16 @@
-import { placeShipsRandomly } from "./botPlacementUtils";
+import { randomPlacement } from "./strategies/botPlacementStrategies.js;";
+import { strategyRandomAttack } from "./strategies/botAttackStrategies.js";
 
 class EasyBotLogic {
   placeShips(board, fleet) {
-    return placeShipsRandomly(board, fleet);
+    return randomPlacement(board, fleet);
   }
 
   getAttack(enemyBoard) {
-    let x;
-    let y;
-    let alreadyAttacked = true;
-
-    while (alreadyAttacked) {
-      x = Math.floor(Math.random() * enemyBoard.size);
-      y = Math.floor(Math.random() * enemyBoard.size);
-
-      alreadyAttacked = enemyBoard.attackedTiles.some((tile) => {
-        return tile.x === x && tile.y === y;
-      });
-    }
-
-    return { x, y };
+    return strategyRandomAttack(enemyBoard);
   }
+
+  recordAttackResult() {}
 }
 
 export default EasyBotLogic;
