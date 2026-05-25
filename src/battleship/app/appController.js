@@ -1,13 +1,5 @@
-import { createMatch } from "..createMatch.js";
-import MatchController from "..matchController.js";
-
-import { renderGameLayout } from "..gameLayout.js";
-import { renderBoard } from "..boardRenderer.js";
-import { renderGameOverPanel } from "..gameOverRenderer.js";
-
-import { bindPlacementActions } from "..placementActions.js";
-import { bindGameActions } from "..gameActions.js";
-import { bindGameOverActions } from "..gameOverActions.js";
+import { createMatch } from "../game/setup/createMatch.js";
+import MatchController from "../game/core/matchController.js";
 
 import { showScreen } from "./screenController.js";
 
@@ -21,37 +13,30 @@ export function startMatch(config) {
   currentController = new MatchController(match);
 
   showScreen("game");
+}
 
-  renderGameLayout();
+export function restartMatch() {
+  if (!currentConfig) {
+    throw new Error("Cannot restart match without config");
+  }
 
-  renderBoard({
-    owner: "playerOne",
-    board: currentController.match.players.playerOne.board,
-    isEnemyBoard: false,
-    controller: currentController,
-  });
+  startMatch(currentConfig);
+}
 
-  renderBoard({
-    owner: "playerTwo",
-    board: currentController.match.players.playerTwo.board,
-    isEnemyBoard: true,
-    controller: currentController,
-  });
+export function exitToMainMenu() {
+  currentController = null;
+  showScreen("mainMenu");
+}
 
-  bindPlacementActions(currentController);
-  bindGameActions(currentController);
+export function changeGameMode() {
+  currentController = null;
+  showScreen("modeSelect");
+}
 
-  bindGameOverActions({
-    onRematch: () => {
-      startMatch(currentConfig);
-    },
+export function getCurrentController() {
+  return currentController;
+}
 
-    onExit: () => {
-      showScreen("mainMenu");
-    },
-
-    onChangeGameMode: () => {
-      showScreen("modeSelect");
-    },
-  });
+export function getCurrentConfig() {
+  return currentConfig;
 }
