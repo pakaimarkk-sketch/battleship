@@ -65,13 +65,17 @@ export function createPlayingPhase(match) {
     }
 
     const opponent = getOpponentPlayer();
-    const { x, y } = match.botLogic.getAttack(opponent.board);
 
-    const result = attack(x, y);
+    const selectedAttack = match.botLogic.getAttack(opponent.board);
+    const result = attack(selectedAttack.x, selectedAttack.y);
+
+    if (typeof match.botLogic.recordAttackResult === "function") {
+      match.botLogic.recordAttackResult(selectedAttack, result);
+    }
 
     return {
-      x,
-      y,
+      x: selectedAttack.x,
+      y: selectedAttack.y,
       result,
     };
   }
