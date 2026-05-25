@@ -1,25 +1,27 @@
 export function bindGameOverActions({ onRematch, onExit, onChangeGameMode }) {
-  const panel = document.querySelector(".game-status");
+  const gameScreen = document.querySelector(".game-screen");
 
-  if (!panel) return;
+  if (!gameScreen) return;
 
-  panel.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-action]");
+  gameScreen.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
 
     if (!button) return;
 
     const action = button.dataset.action;
 
     if (action === "rematch") {
-      onRematch?.();
-    }
-
-    if (action === "exit") {
-      onExit?.();
+      onRematch();
+      return;
     }
 
     if (action === "change-game-mode") {
-      onChangeGameMode?.();
+      onChangeGameMode();
+      return;
+    }
+
+    if (action === "exit-main-menu") {
+      onExit();
     }
   });
 }
