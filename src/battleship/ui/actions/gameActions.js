@@ -24,7 +24,7 @@ function handleEnemyTileClick(controller, x, y) {
   if (state.gameOver) return;
   if (state.currentTurn !== "playerOne") return;
 
-  const result = controller.handlePlayerAttack(x, y);
+  const result = controller.submitAttack("playerOne", x, y);
 
   renderAttackTile({
     owner: "playerTwo",
@@ -48,7 +48,7 @@ function handleEnemyTileClick(controller, x, y) {
 
 function handleBotTurns(controller) {
   while (!controller.getState().gameOver && controller.shouldBotPlay()) {
-    const botAttack = controller.handleBotTurn();
+    const botAttack = controller.submitAutoAttack();
 
     if (!botAttack) break;
 
