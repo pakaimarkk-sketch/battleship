@@ -1,9 +1,9 @@
-import { createPlacementPhase } from "../phases/placementPhase.js";
-import { createPlayingPhase } from "../phases/playingPhase.js";
-import { createGameOverPhase } from "../phases/gameOverPhase.js";
-
 class MatchController {
   constructor(match) {
+    if (!match) {
+      throw new Error("MatchController requires a match");
+    }
+
     this.match = match;
 
     this.phases = {
@@ -13,98 +13,227 @@ class MatchController {
     };
   }
 
-  placePlayerOneShip(x, y) {
-    if (this.match.state.phase !== "placement") {
-      return {
-        success: false,
-        reason: "not-placement-phase",
-      };
-    }
-
-    const result = this.phases.placement.placeShip("playerOne", x, y);
-
-    if (!result.success) {
-      return result;
-    }
-
-    if (this.phases.placement.canStartPlaying()) {
-      this.startPlayingPhase();
-    }
-
-    return result;
+  getState() {
+    return this.match.state;
   }
 
-  rotatePlayerOneShip() {
-    if (this.match.state.phase !== "placement") {
+  getPlayers() {
+    return this.match.players;
+  }
+
+  getPlayer(playerId) {
+    return this.match.players[playerId] ?? null;
+  }
+
+  getCurrentPlayer() {
+    return this.getPlayer(this.match.state.currentTurn);
+  }
+
+  getOpponentOf(playerId) {
+    const players = this.getPlayers();
+
+    const opponentId = Object.keys(players).find((id) => id !== playerId);
+
+    if (!opponentId) {
       return null;
     }
 
-    return this.phases.placement.rotateShip("playerOne");
+    return players[opponentId];
   }
 
-  handlePlayerAttack(x, y) {
-    if (this.match.state.phase !== "playing") {
+  getCurrentAgent() {
+    if (!this.agents) {
+      return null;
+    }
+
+    const currentPlayer = this.getCurrentPlayer();
+
+    if (!currentPlayer) {
+      return null;
+    }
+
+    return this.agents.getForPlayer(currentPlayer);
+  }
+
+  canAttack(playerId, x, y) {
+    const state = this.getState();
+
+    if (state.phase !== "playing") {
       return {
         success: false,
         reason: "not-playing-phase",
       };
     }
 
-    if (this.match.state.gameOver) {
-      return null;
+    if (state.gameOver) {
+      return {
+        success: false,
+        reason: "game-over",
+      };
     }
 
-    const result = this.phases.playing.attack(x, y);
+    if (state.currentTurn !== playerId) {
+      return {
+        success: false,
+        reason: "not-your-turn",
+      };
+    }
 
-    if (result.gameOver) {
-      this.endMatch(result.winner);
+    const attacker = this.getPlayer(playerId);
+
+    if (!attacker) {
+      return {
+        success: false,
+        reason: "unknown-attacker",
+      };
+    }
+
+    const defender = this.getOpponentOf(playerId);
+
+    if (!defender) {
+      return {
+        success: false,
+        reason: "missing-defender",
+      };
+    }
+
+    if (!defender.board.isInsideCoordinate?.(x, y)) {
+      return {
+        success: false,
+        reason: "out-of-bounds",
+      };
+    }
+
+    return {
+      success: true,
+      attacker,
+      defender,
+    };
+  }
+
+  submitAttack(playerId, x, y) {
+    const validation = this.canAttack(playerId, x, y);
+
+    if (!validation.success) {
+      return validation;
+    }
+
+    const { attacker, defender } = validation;
+
+    const attackResult = attacker.attack(defender.board, x, y);
+
+    const result = {
+      success: true,
+      attackerId: attacker.id,
+      defenderId: defender.id,
+      x,
+      y,
+      attack: attackResult,
+    };
+
+    this.notifyAgentAboutAttackResult(attacker.id, result);
+
+    this.checkGameOver(defender);
+
+    if (!this.match.state.gameOver) {
+      this.advanceTurn(result);
     }
 
     return result;
   }
 
-  handleBotTurn() {
-    if (this.match.state.phase !== "playing") {
+  notifyAgentAboutAttackResult(playerId, result) {
+    if (!this.agents) return;
+
+    const agent = this.agents.get(playerId);
+
+    if (!agent) return;
+
+    agent.receiveAttackResult(result);
+  }
+
+  advanceTurn(result) {
+    const rules = this.match.config.rules;
+
+    const wasHit =
+      result.attack.result === "hit" || result.attack.result === "sunk";
+
+    if (rules.extraTurnOnHit && wasHit) {
+      return;
+    }
+
+    const opponent = this.getOpponentOf(result.attackerId);
+
+    if (!opponent) {
+      throw new Error("Cannot advance turn without opponent");
+    }
+
+    this.match.state.currentTurn = opponent.id;
+  }
+
+  checkGameOver(defender) {
+    const rules = this.match.config.rules;
+
+    if (rules.winCondition !== "sinkAllShips") {
+      throw new Error(`Unsupported win condition: ${rules.winCondition}`);
+    }
+
+    if (defender.board.allShipsSunk()) {
+      this.match.state.gameOver = true;
+      this.match.state.phase = "gameOver";
+      this.match.state.winner = this.getOpponentOf(defender.id).id;
+    }
+  }
+
+  getAutoAttack() {
+    const currentPlayer = this.getCurrentPlayer();
+    const currentAgent = this.getCurrentAgent();
+
+    if (!currentPlayer || !currentAgent) {
       return null;
     }
 
-    if (!this.phases.playing.shouldBotPlay()) {
+    if (!currentAgent.canAutoPlay()) {
       return null;
     }
 
-    const botResult = this.phases.playing.botAttack();
+    const opponent = this.getOpponentOf(currentPlayer.id);
 
-    if (botResult.result.gameOver) {
-      this.endMatch(botResult.result.winner);
+    if (!opponent) {
+      return null;
     }
 
-    return botResult;
+    return currentAgent.getAttack({
+      enemyBoard: opponent.board,
+      matchState: this.getState(),
+    });
   }
 
-  shouldBotPlay() {
-    if (this.match.state.phase !== "playing") {
-      return false;
+  submitAutoAttack() {
+    const currentPlayer = this.getCurrentPlayer();
+
+    if (!currentPlayer) {
+      return {
+        success: false,
+        reason: "missing-current-player",
+      };
     }
 
-    return this.phases.playing.shouldBotPlay();
+    const attack = this.getAutoAttack();
+
+    if (!attack) {
+      return {
+        success: false,
+        reason: "no-auto-attack-available",
+      };
+    }
+
+    return this.submitAttack(currentPlayer.id, attack.x, attack.y);
   }
 
-  startPlayingPhase() {
+  startPlaying() {
     this.match.state.phase = "playing";
     this.match.state.currentTurn = "playerOne";
-  }
-
-  endMatch(winner) {
-    return this.phases.gameOver.enter(winner);
-  }
-
-  getState() {
-    return {
-      ...this.match.state,
-      mode: this.match.config.mode,
-      playerMode: this.match.config.match.playerMode,
-      difficulty: this.match.config.match.difficulty,
-    };
   }
 }
 
