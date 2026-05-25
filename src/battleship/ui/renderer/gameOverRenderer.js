@@ -1,22 +1,30 @@
 import {
-  createDiv,
+  createEl,
   createTextElement,
   appendChildren,
-  createButton,
 } from "../../utils/domHelpers.js";
 
 export function renderGameOverPanel(controller) {
+  const existingPanel = document.querySelector(".game-over-panel");
+
+  if (existingPanel) {
+    existingPanel.remove();
+  }
+
   const state = controller.getState();
 
-  if (state.phase !== "gameOver") return;
+  if (!state.gameOver) {
+    return;
+  }
 
-  const panel = document.querySelector(".game-status");
+  const gameScreen = document.querySelector(".game-screen");
 
-  if (!panel) return;
+  if (!gameScreen) {
+    return;
+  }
 
-  panel.textContent = "";
-
-  const wrapper = createDiv(null, "game-over-panel");
+  const overlay = createEl("div", null, "game-over-overlay");
+  const panel = createEl("section", null, "game-over-panel");
 
   const title = createTextElement("h2", "Game Over", null, "game-over-title");
 
@@ -27,23 +35,27 @@ export function renderGameOverPanel(controller) {
     "game-over-winner",
   );
 
-  const actions = createDiv(null, "game-over-actions");
+  const actions = createEl("div", null, "game-over-actions");
 
-  const rematchButton = createButton("Rematch", null, "game-over-button");
-  rematchButton.dataset.action = "rematch";
-
-  const exitButton = createButton("Exit", null, "game-over-button");
-  exitButton.dataset.action = "exit";
-
-  const changeModeButton = createButton(
-    "Change game mode",
-    null,
-    "game-over-button",
+  const rematchButton = createGameOverButton("Rematch", "rematch");
+  const changeModeButton = createGameOverButton(
+    "Change Game Mode",
+    "change-game-mode",
   );
-  changeModeButton.dataset.action = "change-game-mode";
+  const exitButton = createGameOverButton("Main Menu", "exit-main-menu");
 
-  appendChildren(actions, rematchButton, exitButton, changeModeButton);
-  appendChildren(wrapper, title, winnerText, actions);
+  appendChildren(actions, rematchButton, changeModeButton, exitButton);
+  appendChildren(panel, title, winnerText, actions);
+  appendChildren(overlay, panel);
 
-  panel.appendChild(wrapper);
+  gameScreen.appendChild(overlay);
+}
+
+function createGameOverButton(label, action) {
+  const button = createEl("button", null, "game-over-button");
+  button.type = "button";
+  button.textContent = label;
+  button.dataset.action = action;
+
+  return button;
 }
