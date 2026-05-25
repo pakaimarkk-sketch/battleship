@@ -74,17 +74,17 @@ Build the system that coordinates a full match.
 ### Main Tasks
 
 - implement `matchController.js` ✅
-- define match phases
-  - setup phase
-  - placement phase
-  - battle phase
-  - end phase
+- define match phases ✅
+  - setup phase ✅
+  - placement phase ✅
+  - battle phase ✅
+  - end phase ✅
 - implement turn switching ✅
 - implement attack resolution flow through match logic ✅
 - connect participants to their boards ✅
 - implement winner detection ✅
 - define game over handling ✅
-- define round tracking for future advanced modes
+- define round tracking for future advanced modes ✅
 
 ### Expected Outcome
 
@@ -138,12 +138,12 @@ Add singleplayer support with bot behavior and difficulty scaling.
 - implement `computerLogic.js` ✅
 - connect bot behavior to singleplayer flow ✅
 - implement `easyBotConfig.js` ✅
-- implement `mediumBotConfig.js`
-- implement `hardBotConfig.js`
+- implement `mediumBotConfig.js`✅
+- implement `hardBotConfig.js`✅
 - support bot ship placement ✅
 - support bot attack decisions ✅
 - define how difficulty changes bot behavior ✅
-- integrate difficulty selection into game setup
+- integrate difficulty selection into game setup ✅
 
 ### Expected Outcome
 
@@ -166,16 +166,16 @@ Build the application flow around the playable game systems.
 
 ### Main Tasks
 
-- implement main menu flow
+- implement main menu flow ✅
 - implement opener flow if retained
-- implement play navigation
-- implement mode selection flow
-- implement difficulty selection flow
-- implement setup screens
-- connect selected setup values to config generation
-- integrate `screenController.js`
+- implement play navigation ✅
+- implement mode selection flow ✅
+- implement difficulty selection flow ✅
+- implement setup screens ✅
+- connect selected setup values to config generation ✅
+- integrate `screenController.js` ✅
 - integrate `navigationController.js` if kept separate
-- connect UI actions to match creation
+- connect UI actions to match creation ✅
 
 ### Expected Outcome
 
