@@ -53,6 +53,39 @@ export function createPlayingPhase(match) {
     };
   }
 
+  function useAbility(ability, x, y) {
+    const attacker = getCurrentPlayer();
+    const opponent = getOpponentPlayer();
+
+    const abilityResult = useAbility({
+      ability,
+      targetX: x,
+      targetY: y,
+      attacker,
+      opponentBoard: opponent.board,
+    });
+
+    if (!abilityResult.success) {
+      return abilityResult;
+    }
+
+    if (opponent.board.allShipsSunk()) {
+      return {
+        ...abilityResult,
+        gameOver: true,
+        winner: attacker.id,
+      };
+    }
+
+    switchTurn();
+
+    return {
+      ...abilityResult,
+      gameOver: false,
+      winner: null,
+    };
+  }
+
   function shouldBotPlay() {
     const currentPlayer = getCurrentPlayer();
 
@@ -87,5 +120,6 @@ export function createPlayingPhase(match) {
     attack,
     shouldBotPlay,
     botAttack,
+    useAbility,
   };
 }

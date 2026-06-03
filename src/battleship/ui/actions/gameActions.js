@@ -1,6 +1,8 @@
 import { renderAttackTile } from "../renderer/gameRenderer.js";
 import { renderGameOverPanel } from "../renderer/gameOverRenderer.js";
 
+let selectedAbility = null;
+
 export function bindGameActions(controller) {
   const enemyBoard = document.querySelector('[data-owner="playerTwo"].board');
 
@@ -20,11 +22,19 @@ export function bindGameActions(controller) {
 
 function handleEnemyTileClick(controller, x, y) {
   const state = controller.getState();
+  const selectedAbility = getSelectedAbility();
 
   if (state.gameOver) return;
   if (state.currentTurn !== "playerOne") return;
 
   const result = controller.submitAttack("playerOne", x, y);
+
+  if (selectedAbility) {
+    const result = controller.handlePlayerAbility(selectedAbility, x, y);
+    clearSelectedAbility();
+    renderAbilityResult(result);
+    return;
+  }
 
   renderAttackTile({
     owner: "playerTwo",
@@ -65,4 +75,24 @@ function handleBotTurns(controller) {
       controller,
     });
   }
+}
+
+function handleAbilityButtonClick(e) {
+  const abilityId = e.target.dataset.abilityId;
+
+  if (!abilityId) return;
+
+  selectedAbility = abilityId;
+}
+
+function handleAbilityButtonClick(e) {
+  const abilityId = e.target.dataset.abilityId;
+
+  if (!abilityId) return;
+
+  selectedAbility = abilityId;
+
+  document.querySelectorAll(".ability-btn").forEach((btn) => {
+    btn.classList.toggle("selected", btn.dataset.abilityId === abilityId);
+  });
 }

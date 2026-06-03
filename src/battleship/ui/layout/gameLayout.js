@@ -2,6 +2,7 @@ import {
   createTextElement,
   appendChildren,
   createEl,
+  createDiv,
 } from "../../utils/domHelpers.js";
 
 import { createBoardLayout } from "./boardLayout.js";
@@ -30,7 +31,29 @@ export function createGameLayout(controller) {
     title: "Enemy Board",
   });
 
-  appendChildren(boards, playerBoard, enemyBoard);
+  const abilitiesContainer = createDiv(null, "abilities-container");
+
+  const areaScanBtn = createEl("button", null, "ability-btn");
+  areaScanBtn.dataset.abilityId = "areaScan";
+  areaScanBtn.textContent = "Area Scan";
+
+  const carpetBombBtn = createEl("button", null, "ability-btn");
+  carpetBombBtn.dataset.abilityId = "carpetBomb";
+  carpetBombBtn.textContent = "Carpet Bomb";
+
+  const nukeBtn = createEl("button", null, "ability-btn");
+  nukeBtn.dataset.abilityId = "nuke";
+  nukeBtn.textContent = "Nuke";
+
+  appendChildren(
+    boards,
+    playerBoard,
+    enemyBoard,
+    abilitiesContainer,
+    areaScanBtn,
+    carpetBombBtn,
+    nukeBtn,
+  );
 
   return appendChildren(screen, title, status, boards);
 }

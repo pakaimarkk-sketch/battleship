@@ -95,6 +95,24 @@ class MatchController {
     return result;
   }
 
+  handlePlayerAbility(ability, x, y) {
+    if (this.state.phase !== "playing") {
+      return {
+        success: false,
+        reason: "not-playing-phase",
+      };
+    }
+
+    const result = this.phases.playing.useAbility(ability, x, y);
+
+    if (result.gameOver) {
+      this.state.phase = "gameOver";
+      this.state.winner = result.winner;
+    }
+
+    return result;
+  }
+
   shouldBotPlay() {
     if (this.match.state.phase !== "playing") {
       return false;
