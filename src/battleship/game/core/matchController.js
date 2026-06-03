@@ -1,6 +1,7 @@
 import { createPlacementPhase } from "../phases/placementPhase.js";
 import { createPlayingPhase } from "../phases/playingPhase.js";
 import { createGameOverPhase } from "../phases/gameOverPhase.js";
+import { useAbility } from "../abilities/abilityController.js";
 
 class MatchController {
   constructor(match) {
@@ -95,24 +96,6 @@ class MatchController {
     return result;
   }
 
-  handlePlayerAbility(ability, x, y) {
-    if (this.state.phase !== "playing") {
-      return {
-        success: false,
-        reason: "not-playing-phase",
-      };
-    }
-
-    const result = this.phases.playing.useAbility(ability, x, y);
-
-    if (result.gameOver) {
-      this.state.phase = "gameOver";
-      this.state.winner = result.winner;
-    }
-
-    return result;
-  }
-
   shouldBotPlay() {
     if (this.match.state.phase !== "playing") {
       return false;
@@ -133,6 +116,86 @@ class MatchController {
     }
 
     return botAttack;
+  }
+
+  canUseAbility(playerId, ability) {
+    if (this.match.state.phase !== "playing") {
+      return {
+        success: false,
+        reason: "not-playing-phase",
+      };
+    }
+
+    if (this.match.state.currentTurn !== playerId) {
+      return {
+        success: false,
+        reason: "not-current-player",
+      };
+    }
+
+    if (!this.match.config.abilities?.enabled) {
+      return {
+        success: false,
+        reason: "abilities-disabled",
+      };
+    }
+
+    if (!ability) {
+      return {
+        success: false,
+        reason: "missing-ability",
+      };
+    }
+
+    return {
+      success: true,
+      attacker: this.getCurrentPlayer(),
+      defender: this.getOpponentPlayer(),
+    };
+  }
+
+  submitAbility(playerId, ability, x, y) {
+    const validation = this.canUseAbility(playerId, ability);
+
+    if (!validation.success) {
+      return validation;
+    }
+
+    const { attacker, defender } = validation;
+
+    const abilityResult = useAbility({
+      ability,
+      targetX: x,
+      targetY: y,
+      attacker,
+      opponentBoard: defender.board,
+    });
+
+    const result = {
+      ...abilityResult,
+      attackerId: attacker.id,
+      defenderId: defender.id,
+      x,
+      y,
+    };
+
+    if (defender.board.allShipsSunk()) {
+      this.phases.gameOver.enter(attacker.id);
+
+      return {
+        ...result,
+        gameOver: true,
+        winner: attacker.id,
+      };
+    }
+
+    this.match.state.currentTurn = defender.id;
+
+    return {
+      ...result,
+      gameOver: false,
+      winner: null,
+    };
   }
 
   getGameOverState() {

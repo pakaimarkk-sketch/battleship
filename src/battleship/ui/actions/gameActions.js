@@ -1,9 +1,29 @@
 import { renderAttackTile } from "../renderer/gameRenderer.js";
 import { renderGameOverPanel } from "../renderer/gameOverRenderer.js";
+import { getAbilityById } from "../../game/abilities/abilityRegistry.js";
 
 let selectedAbility = null;
 
 export function bindGameActions(controller) {
+  bindAbilityButtons();
+  bindEnemyBoard(controller);
+}
+
+function bindAbilityButtons() {
+  const buttons = document.querySelectorAll("[data-ability-id]");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const abilityId = button.dataset.abilityId;
+
+      selectedAbility = selectedAbility === abilityId ? null : abilityId;
+
+      updateAbilityButtonUI();
+    });
+  });
+}
+
+function bindEnemyBoard(controller) {
   const enemyBoard = document.querySelector('[data-owner="playerTwo"].board');
 
   if (!enemyBoard) return;
@@ -22,19 +42,20 @@ export function bindGameActions(controller) {
 
 function handleEnemyTileClick(controller, x, y) {
   const state = controller.getState();
-  const selectedAbility = getSelectedAbility();
 
   if (state.gameOver) return;
   if (state.currentTurn !== "playerOne") return;
 
-  const result = controller.submitAttack("playerOne", x, y);
-
   if (selectedAbility) {
-    const result = controller.handlePlayerAbility(selectedAbility, x, y);
-    clearSelectedAbility();
-    renderAbilityResult(result);
+    handleAbilityTileClick(controller, selectedAbility, x, y);
     return;
   }
+
+  handleNormalAttackTileClick(controller, x, y);
+}
+
+function handleNormalAttackTileClick(controller, x, y) {
+  const result = controller.submitAttack("playerOne", x, y);
 
   renderAttackTile({
     owner: "playerTwo",
@@ -45,12 +66,36 @@ function handleEnemyTileClick(controller, x, y) {
     controller,
   });
 
-  if (result?.result === "already-attacked") {
+  if (result?.attack?.result === "already-attacked") {
     return;
   }
 
   if (controller.getState().phase === "gameOver") {
     renderGameOverPanel(controller);
+    return;
+  }
+
+  handleBotTurns(controller);
+}
+
+function handleAbilityTileClick(controller, abilityId, x, y) {
+  const ability = getAbilityById(abilityId);
+
+  const result = controller.submitAbility("playerOne", ability, x, y);
+
+  selectedAbility = null;
+  updateAbilityButtonUI();
+
+  if (!result.success) {
+    console.log("Invalid ability use:", result.reason);
+    return;
+  }
+
+  renderAbilityResult(controller, result);
+
+  if (controller.getState().phase === "gameOver") {
+    renderGameOverPanel(controller);
+    return;
   }
 
   handleBotTurns(controller);
@@ -77,22 +122,48 @@ function handleBotTurns(controller) {
   }
 }
 
-function handleAbilityButtonClick(e) {
-  const abilityId = e.target.dataset.abilityId;
-
-  if (!abilityId) return;
-
-  selectedAbility = abilityId;
+function updateAbilityButtonUI() {
+  document.querySelectorAll("[data-ability-id]").forEach((button) => {
+    button.classList.toggle(
+      "selected",
+      button.dataset.abilityId === selectedAbility,
+    );
+  });
 }
 
-function handleAbilityButtonClick(e) {
-  const abilityId = e.target.dataset.abilityId;
+function renderAbilityResult(controller, result) {
+  if (result.effectType === "scanArea") {
+    renderScanResult(result);
+    return;
+  }
 
-  if (!abilityId) return;
+  result.results.forEach((tileResult) => {
+    renderAttackTile({
+      owner: "playerTwo",
+      board: controller.match.players.playerTwo.board,
+      x: tileResult.x,
+      y: tileResult.y,
+      isEnemyBoard: true,
+      controller,
+    });
+  });
+}
 
-  selectedAbility = abilityId;
+function renderScanResult(result) {
+  result.results.forEach(({ x, y, result: scanResult }) => {
+    const tile = document.querySelector(
+      `.tile[data-owner="playerTwo"][data-x="${x}"][data-y="${y}"]`,
+    );
 
-  document.querySelectorAll(".ability-btn").forEach((btn) => {
-    btn.classList.toggle("selected", btn.dataset.abilityId === abilityId);
+    if (!tile) return;
+
+    tile.classList.remove("scan-hit", "scan-empty");
+
+    if (scanResult === "ship-present") {
+      tile.classList.add("scan-hit");
+      return;
+    }
+
+    tile.classList.add("scan-empty");
   });
 }

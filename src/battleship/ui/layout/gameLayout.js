@@ -2,7 +2,7 @@ import {
   createTextElement,
   appendChildren,
   createEl,
-  createDiv,
+  createButton,
 } from "../../utils/domHelpers.js";
 
 import { createBoardLayout } from "./boardLayout.js";
@@ -11,11 +11,12 @@ export function createGameLayout(controller) {
   const boardSize = controller.match.config.board.size;
 
   const screen = createEl("main", null, "game-screen");
-
   const title = createTextElement("h1", "Battleship", null, "game-title");
 
   const status = createEl("div", null, "game-status");
   status.dataset.role = "game-status";
+
+  const abilities = createAbilityPanel(controller);
 
   const boards = createEl("div", null, "boards");
 
@@ -31,29 +32,29 @@ export function createGameLayout(controller) {
     title: "Enemy Board",
   });
 
-  const abilitiesContainer = createDiv(null, "abilities-container");
+  appendChildren(boards, playerBoard, enemyBoard);
 
-  const areaScanBtn = createEl("button", null, "ability-btn");
-  areaScanBtn.dataset.abilityId = "areaScan";
-  areaScanBtn.textContent = "Area Scan";
+  return appendChildren(screen, title, status, abilities, boards);
+}
 
-  const carpetBombBtn = createEl("button", null, "ability-btn");
-  carpetBombBtn.dataset.abilityId = "carpetBomb";
-  carpetBombBtn.textContent = "Carpet Bomb";
+function createAbilityPanel(controller) {
+  const panel = createEl("div", null, "ability-panel");
+  panel.dataset.role = "ability-panel";
 
-  const nukeBtn = createEl("button", null, "ability-btn");
-  nukeBtn.dataset.abilityId = "nuke";
-  nukeBtn.textContent = "Nuke";
+  if (!controller.match.config.abilities?.enabled) {
+    return panel;
+  }
 
-  appendChildren(
-    boards,
-    playerBoard,
-    enemyBoard,
-    abilitiesContainer,
-    areaScanBtn,
-    carpetBombBtn,
-    nukeBtn,
-  );
+  const areaScanButton = createButton("Area Scan", null, "ability-button");
+  areaScanButton.dataset.abilityId = "areaScan";
 
-  return appendChildren(screen, title, status, boards);
+  const carpetBombButton = createButton("Carpet Bomb", null, "ability-button");
+  carpetBombButton.dataset.abilityId = "carpetBomb";
+
+  const nukeButton = createButton("Nuke", null, "ability-button");
+  nukeButton.dataset.abilityId = "nuke";
+
+  appendChildren(panel, areaScanButton, carpetBombButton, nukeButton);
+
+  return panel;
 }
