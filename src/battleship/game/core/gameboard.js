@@ -85,6 +85,9 @@ class Gameboard {
           y,
           ship: placedShip.ship,
           sunk: placedShip.ship.isSunk(),
+          shipCoordinates: placedShip.ship.isSunk()
+            ? placedShip.coordinates.map(({ x, y }) => ({ x, y }))
+            : null,
         };
       }
     }
