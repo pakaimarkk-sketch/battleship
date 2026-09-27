@@ -1,5 +1,5 @@
-import Ship from "../../../core/ship.js";
-import { rotateShape } from "../../ships/shipUtils.js";
+import Ship from "../../core/ship.js";
+import { rotateShape } from "../../config/ships/shipUtils.js";
 
 export function randomPlacement(board, fleet) {
   const occupiedCoords = new Set();

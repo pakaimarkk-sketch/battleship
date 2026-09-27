@@ -36,7 +36,7 @@ export function updateHuntMemory(memory, attack, result) {
 
   memory.hits.push(attack);
 
-  if (result.result === "sunk") {
+  if (result.sunk) {
     clearHuntMemory(memory);
     return;
   }
