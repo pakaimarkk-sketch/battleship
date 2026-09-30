@@ -2,7 +2,7 @@ import EasyBotLogic from "./easyBotLogic.js";
 import MediumBotLogic from "./mediumBotLogic.js";
 import HardBotLogic from "./hardBotLogic.js";
 
-export function createBotLogic(difficulty) {
+export function createBotLogic(difficulty, options = {}) {
   const botLogics = {
     easy: EasyBotLogic,
     medium: MediumBotLogic,
@@ -15,5 +15,5 @@ export function createBotLogic(difficulty) {
     throw new Error(`Unknown bot difficulty: ${difficulty}`);
   }
 
-  return new BotLogic();
+  return new BotLogic(options);
 }

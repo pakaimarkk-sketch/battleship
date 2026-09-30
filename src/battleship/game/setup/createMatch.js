@@ -24,7 +24,9 @@ export function createMatch(config) {
       });
 
   const botLogic = isSinglePlayer
-    ? createBotLogic(config.match.difficulty)
+    ? createBotLogic(config.match.difficulty, {
+        fleet: config.ships,
+      })
     : null;
 
   if (botLogic) {

@@ -1,3 +1,5 @@
+import { getRotatedShape } from "../config/ships/shipUtils.js";
+
 const DEFAULT_WEIGHTS = Object.freeze({
   heat: 1,
   information: 0.35,
@@ -7,21 +9,21 @@ const DEFAULT_WEIGHTS = Object.freeze({
 function assertCoordinate(coordinate, label = "coordinate") {
   if (
     !coordinate ||
-    !Number.isInteger(coordinate.row) ||
-    !Number.isInteger(coordinate.col)
+    !Number.isInteger(coordinate.x) ||
+    !Number.isInteger(coordinate.y)
   ) {
-    throw new TypeError(`${label} must contain integer row and col values`);
+    throw new TypeError(`${label} must contain integer x and y values`);
   }
 }
 
-function coordinateKey({ row, col }) {
-  return `${row},${col}`;
+function coordinateKey({ y, x }) {
+  return `${y},${x}`;
 }
 
-function createCell(row, col) {
+function createCell(y, x) {
   return {
-    row,
-    col,
+    y,
+    x,
     heatScore: 0,
     informationScore: 0,
     hitConnectionScore: 0,
@@ -41,7 +43,8 @@ export class TargetingEngine {
     this.random = random;
   }
 
-  analyze({ board, remainingFleet, attackHistory = [] }) {
+  analyze({ boardSize, remainingFleet, attackHistory = [] }) {
+    const board = { size: boardSize };
     this.#validateInput(board, remainingFleet, attackHistory);
 
     const knowledge = this.#buildKnowledge(attackHistory);
@@ -75,28 +78,19 @@ export class TargetingEngine {
     }
 
     const index = Math.floor(this.random() * analysis.candidates.length);
+
     const selected =
       analysis.candidates[Math.min(index, analysis.candidates.length - 1)];
 
     return {
-      target: { row: selected.row, col: selected.col },
+      target: { x: selected.x, y: selected.y },
       ...analysis,
     };
   }
 
   #validateInput(board, fleet, attackHistory) {
-    if (
-      !board ||
-      !Number.isInteger(board.rows) ||
-      !Number.isInteger(board.cols) ||
-      board.rows < 1 ||
-      board.cols < 1 ||
-      board.rows > 30 ||
-      board.cols > 30
-    ) {
-      throw new RangeError(
-        "board rows and cols must be integers between 1 and 30",
-      );
+    if (!Number.isInteger(board.size) || board.size < 1 || board.size > 30) {
+      throw new RangeError("boardSize must be an integer between 1 and 30");
     }
 
     if (!Array.isArray(fleet)) {
@@ -104,23 +98,20 @@ export class TargetingEngine {
     }
 
     for (const ship of fleet) {
-      if (
-        !ship?.id ||
-        !Array.isArray(ship.orientations) ||
-        ship.orientations.length === 0
-      ) {
-        throw new TypeError(
-          "Every ship needs an id and at least one orientation",
-        );
+      if (!ship?.id || !Array.isArray(ship.shape) || ship.shape.length === 0) {
+        throw new TypeError("Every ship needs an id and a non-empty shape");
       }
 
-      for (const orientation of ship.orientations) {
-        if (!Array.isArray(orientation) || orientation.length === 0) {
-          throw new TypeError("Every orientation must be a non-empty array");
+      for (const cell of ship.shape) {
+        if (
+          !Array.isArray(cell) ||
+          cell.length !== 2 ||
+          !cell.every(Number.isInteger)
+        ) {
+          throw new TypeError(
+            "Every shape cell must contain integer [x, y] offsets",
+          );
         }
-        orientation.forEach((cell) =>
-          assertCoordinate(cell, "orientation cell"),
-        );
       }
     }
 
@@ -137,6 +128,7 @@ export class TargetingEngine {
 
     for (const attack of attackHistory) {
       assertCoordinate(attack.coordinate, "attack coordinate");
+
       const key = coordinateKey(attack.coordinate);
       attacked.add(key);
 
@@ -155,11 +147,13 @@ export class TargetingEngine {
 
         for (const coordinate of coordinates) {
           assertCoordinate(coordinate, "sunk coordinate");
+
           const sunkKey = coordinateKey(coordinate);
           attacked.add(sunkKey);
           unresolvedHits.delete(sunkKey);
           sunkCells.add(sunkKey);
         }
+
         continue;
       }
 
@@ -169,26 +163,50 @@ export class TargetingEngine {
     return { attacked, misses, unresolvedHits, sunkCells };
   }
 
+  #getUniqueOrientations(shape) {
+    const seen = new Set();
+    const orientations = [];
+
+    for (const rotation of [0, 90, 180, 270]) {
+      const rotated = getRotatedShape(shape, rotation)
+        .map(([x, y]) => ({ x, y }))
+        .sort((a, b) => a.y - b.y || a.x - b.x);
+
+      const key = rotated.map(coordinateKey).join(";");
+
+      // Az azonos alakot eredményező forgatásokat csak egyszer számoljuk.
+      if (seen.has(key)) continue;
+
+      seen.add(key);
+      orientations.push(rotated);
+    }
+
+    return orientations;
+  }
+
   #generateValidPlacements(board, fleet, knowledge) {
     const placements = [];
 
     for (const ship of fleet) {
+      const orientations = this.#getUniqueOrientations(ship.shape);
+
       for (
         let orientationIndex = 0;
-        orientationIndex < ship.orientations.length;
+        orientationIndex < orientations.length;
         orientationIndex += 1
       ) {
-        const orientation = ship.orientations[orientationIndex];
+        const orientation = orientations[orientationIndex];
 
-        for (let originRow = 0; originRow < board.rows; originRow += 1) {
-          for (let originCol = 0; originCol < board.cols; originCol += 1) {
-            const coordinates = orientation.map(({ row, col }) => ({
-              row: originRow + row,
-              col: originCol + col,
+        for (let originY = 0; originY < board.size; originY += 1) {
+          for (let originX = 0; originX < board.size; originX += 1) {
+            const coordinates = orientation.map(({ x, y }) => ({
+              x: originX + x,
+              y: originY + y,
             }));
 
-            if (!this.#isValidPlacement(coordinates, board, knowledge))
+            if (!this.#isValidPlacement(coordinates, board, knowledge)) {
               continue;
+            }
 
             const hitCount = coordinates.reduce(
               (count, coordinate) =>
@@ -200,7 +218,7 @@ export class TargetingEngine {
             placements.push({
               shipId: ship.id,
               orientationIndex,
-              origin: { row: originRow, col: originCol },
+              origin: { x: originX, y: originY },
               coordinates,
               hitCount,
             });
@@ -215,21 +233,22 @@ export class TargetingEngine {
   #isValidPlacement(coordinates, board, knowledge) {
     return coordinates.every((coordinate) => {
       const inside =
-        coordinate.row >= 0 &&
-        coordinate.row < board.rows &&
-        coordinate.col >= 0 &&
-        coordinate.col < board.cols;
+        coordinate.x >= 0 &&
+        coordinate.x < board.size &&
+        coordinate.y >= 0 &&
+        coordinate.y < board.size;
 
       if (!inside) return false;
 
       const key = coordinateKey(coordinate);
+
       return !knowledge.misses.has(key) && !knowledge.sunkCells.has(key);
     });
   }
 
   #createScoreMap(board) {
-    return Array.from({ length: board.rows }, (_, row) =>
-      Array.from({ length: board.cols }, (_, col) => createCell(row, col)),
+    return Array.from({ length: board.size }, (_, y) =>
+      Array.from({ length: board.size }, (_, x) => createCell(y, x)),
     );
   }
 
@@ -244,10 +263,12 @@ export class TargetingEngine {
 
       const searchMultiplier =
         targetingAHit && placement.hitCount === 0 ? 0.1 : 1;
+
       const weight = hitMultiplier * searchMultiplier;
 
       for (const coordinate of placement.coordinates) {
-        const cell = scoreMap[coordinate.row][coordinate.col];
+        const cell = scoreMap[coordinate.y][coordinate.x];
+
         cell.heatScore += weight;
         cell.supportingPlacements += 1;
 

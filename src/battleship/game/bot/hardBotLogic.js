@@ -20,10 +20,16 @@ class HardBotLogic {
       attackHistory: this.attackHistory,
     });
 
+    if (!analysis.target) {
+      throw new Error("Hard bot has no valid attack target");
+    }
+
     return analysis.target;
   }
 
   recordAttackResult(attack, result) {
+    if (result.result === "already-attacked") return;
+
     this.attackHistory.push({
       coordinate: attack,
       result: result.sunk ? "sunk" : result.result,
@@ -31,9 +37,9 @@ class HardBotLogic {
     });
 
     if (result.sunk && result.ship) {
-      this.remainingFleet = this.remainingFleet.filter((ship) => {
-        return ship.id !== result.ship.id;
-      });
+      this.remainingFleet = this.remainingFleet.filter(
+        (ship) => ship.id !== result.ship.id,
+      );
     }
   }
 }
