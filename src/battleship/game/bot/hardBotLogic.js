@@ -1,5 +1,5 @@
 import { randomPlacement } from "./strategies/botPlacementStrategies.js";
-import TargetingEngine from "./targetingEngine.js";
+import { TargetingEngine } from "./botTargetingEngine.js";
 
 class HardBotLogic {
   constructor({ fleet = [] } = {}) {

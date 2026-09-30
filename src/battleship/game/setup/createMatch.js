@@ -2,7 +2,7 @@ import Gameboard from "../core/gameboard.js";
 import Player from "../participants/player.js";
 import { PLAYER_TYPES } from "../participants/playerTypes.js";
 import { PLAYER_MODES } from "../modes/playerModes.js";
-import { createBotLogic } from "../config/bot/createBotLogic.js";
+import { createBotLogic } from "../bot/createBotLogic.js";
 import { createPlacementSession } from "./createPlacementSession.js";
 
 export function createMatch(config) {
